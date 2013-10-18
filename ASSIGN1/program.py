@@ -1,4 +1,5 @@
 import sys
+import rushDomain
 import rush3
 import time
 
@@ -14,7 +15,7 @@ filename_read=str(sys.argv[1])
 
 print("File: "+filename_read)
 print("Loading problem from file.")
-problem=rush3.loadProblem(filename_read)
+problem=rushDomain.loadProblem(filename_read)
 
 
 print("Solving problem...")
