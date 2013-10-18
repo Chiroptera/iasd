@@ -1,0 +1,173 @@
+
+
+* Assignment desctiption
+** Suggestion and notes
+In your program the domain-independent part should be explicitly iso-
+lated from the domain-dependent one.
+
+*Suggestion*: Use the General Search to develop a generic search algo-
+rithm (domain-independent part) and then particularize it to the Rush
+Hour problem (domain-dependent part).
+
+Note 1: All code should be adequately commented. In particular, for
+each function you should include comments describing the function’s
+purpose, inputs and outputs.
+
+Note 2: Do not forget to identify the version of Python used.
+
+** Questions
+*** Questions
+1- Identify how do you represent the problem state, the operator(s),
+the initial state, the goal state, and the path cost;
+2- Identify each uninformed and informed search algorithms imple-
+mented;
+3- Describe how did you separate the domain-independent part of
+the solver from the domain-dependent one;
+4- Describe and justify the heuristic function(s) developed;
+5- Compare quantitatively and comment the performance of the dif-
+ferent search techniques implemented.
+*** Answers
+1- We represented the problem as a dictionary. Each car as a
+associated key. The values of each key are the coordinates the car
+ocupies in the board. If it a truck there are 3 coordinates. The first
+coordinate is always the start of the car/truck and the last is the
+end.
+2- 
+
+* Comments on code
+** actions function
+This function receives a problem state and the problem size and
+returns a list of possible actions. For each car in the problem state,
+it starts by checking if the car moves horizontally or vertically with
+the following code.
+
+#+begin_src python
+        if state[car][start][lin] is state[car][end][lin]
+#+end_src
+
+If the line of the start of the car is the same as the line of the end
+of the car, it means that the car moves horizontally. Otherwise it
+moves vertically.
+
+Then the function starts checking for each direction movement
+(right/left or up/down). Taking horizontal movement as example, the
+function does this by incrementally check if the coordinates to the
+left of the start are in the set of '-' (blank spaces). If it is then
+the car can move to the left (by *move* spaces).
+
+** results function
+It is necessary to do a copy of the original state we're receiving.
+The copy must be a deep copy, so that we don't only create a new 
+reference to the existing dictionary. That is what ~copy.deepcopy(state)~
+is doing.
+
+#+begin_src python
+    ## MOVE LEFT
+    if action[1] is 'L':
+        for x in range(action[2]):
+            for ind,coord in enumerate(result_state[action[0]]):
+                print ind,coord
+                if ind == len(result_state[action[0]])-1:
+                    result_state['-'].append(coord[:])
+                coord[col]=coord[col]-1
+                if ind == 0:
+                    result_state['-'].remove(coord)
+#+end_src
+
+The first loop "reads" how many unitary moves will be performed.
+The second loop goes through all the coordinates of the car that
+is going to be moved. We use the =enumerate= function so we know
+which are the first (~ind == 0~) and last (~ind == index of last element~,
+ i.e., length of coordinate set minus 1 because first index is null)
+ elements. We want to add the  the last element of the car to the '-' 
+set before it is incremented and remove the first element after it is
+incremented. The same logic is used for the remaining moves.
+
+In the end the coordinates of the '-' set must be sorted so that in
+general search, when we want to see if a state belongs to the explored
+set or the frontier set, there is a correct comparison.
+
+What is returned is a list countaing the *parent state*, the *calling
+action* and the *resulting state*. We do this so we can track the path
+to the very beginning.
+
+** generalSearch
+We start by creating 3 lists: one to store the explored states, one to
+the frontier and another for the paths (list that stores possible
+paths to solution).
+
+Before we start the loop, we need to add the initial problem to the
+frontier. In the loop:
+1- ~if len(frontier) == 0)~ The first thing we do in the loop is check it the frontier
+is empty - if it is we return the paths we found (hopefully).
+2- ~current_state=frontier.pop(0)~ If we have a frontier we choose a
+state from the frontier - in Breadth First
+Search we always choose the first because it's working as a queue (in
+the Depth Search it's working as a stack).
+3- ~explored.append(current_state)~ After we choose the current state, we add it to the explored list,
+so we don't explore it again in the future.
+4- ~current_actions=actions(current_state,problemSize)~ We get the
+list of possible actions for the current state.
+5- For each action we calculate the resulting state and check if this
+state is the goal state. If it is, then we reconstruct its path from
+the beginning and add it to the paths list. If it is not, we check if
+it is already in the explored or frontier list. If it is, we discard
+it, since we don't want to redundancy. If it is not, then we add it to
+the frontier to be explored later.
+
+
+** A* search
+Pseudocode from Wikipedia:
+
+#+begin_src python
+function A*(start,goal)
+    closedset := the empty set    // The set of nodes already evaluated.
+    openset := {start}    // The set of tentative nodes to be evaluated, initially containing the start node
+    came_from := the empty map    // The map of navigated nodes.
+
+    g_score[start] := 0    // Cost from start along best known path.
+    // Estimated total cost from start to goal through y.
+    f_score[start] := g_score[start] + heuristic_cost_estimate(start, goal)
+     
+    while openset is not empty
+        current := the node in openset having the lowest f_score[] value
+        if current = goal
+            return reconstruct_path(came_from, goal)
+         
+        remove current from openset
+        add current to closedset
+        for each neighbor in neighbor_nodes(current)
+            tentative_g_score := g_score[current] + dist_between(current,neighbor)
+            tentative_f_score := tentative_g_score + heuristic_cost_estimate(neighbor, goal)
+            if neighbor in closedset and tentative_f_score >= f_score[neighbor]
+                    continue
+
+            if neighbor not in openset or tentative_f_score < f_score[neighbor] 
+                came_from[neighbor] := current
+                g_score[neighbor] := tentative_g_score
+                f_score[neighbor] := tentative_f_score
+                if neighbor not in openset
+                    add neighbor to openset
+
+    return failure
+#+end_src
+
+I don't think we need to do all of this. The only think I think we really need to do is write the heuristic function and instead of always pulling the first state from the frontier we write a decision function that always pulls the state that returns the least heuristic value.
+
+
+*** decision function
+During the decision we must find the state with minimum heuristic
+value in the frontier. We can execute the function on all the frontier
+states each time we make a decision or we can add the heuristic to the
+representation of the problem, so that in the decision we just have to
+search 1 parameter in each state.
+
+If we use the second option, it would be best to use the function
+*itemgetter* from the *operator* module. To choose the state with the minimum heuristic value we just have to use the following code.
+
+#+begin_src python
+min(frontier, key=itemgetter(parameter_num))
+#+end_src
+
+*parameter\_num* is the number of the parameter that corresponds to the heuristic value in the state representation.
+

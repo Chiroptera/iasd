@@ -1,6 +1,6 @@
 import copy
 import time
-
+from operator import itemgetter
 # aid variables -> help in referencing different things throughout the code
 start=0 # references the coordinate of the beggining of the car
 end=-1 # references the coordinate of the end of the car
@@ -56,7 +56,7 @@ def loadProblem(filename):
             else:
                 problem[elem].append([line_num,elem_num])
 
-    return [[0,0,problem],problemSize]
+    return [[0,0,0,problem],problemSize]
 
 ####################### Function #############################
 #
@@ -209,7 +209,7 @@ def results(state,action):
                 if ind == len(result_state[action[0]]) - 1:
                     result_state['-'].remove(coord)
     result_state['-'].sort() # this has to be done to ensure correct state comparison in general search
-    return [state,list(action),result_state]
+    return [state,list(action),0,result_state]
 
 
 ####################### Function #############################
@@ -238,8 +238,9 @@ def goaltest (state,problemSize):
 #
 #############################################################
 
-def path_cost(path):
-    return len(path)
+def pathCost(state):
+    pathCost=len(buildPath(state))
+    return pathCost
 
 ####################### Function #############################
 #
@@ -265,7 +266,8 @@ def generalSearch(problem,problemSize):
         if len(frontier) == 0: # if frontier is empty, no solution found
             return False
 
-        current_state = decide(frontier) # decide which state from the fronter to explore (always the 1st)
+        sorted(frontier, key=itemgetter # sort frontier's states by estimation value min to max
+        current_state = frontier.pop(0) # take state with lowest estimation
 
         explored.append(current_state) # add state chosen to explored set
         current_actions=actions(current_state,problemSize) # determine actions available fo current state
@@ -288,7 +290,8 @@ def generalSearch(problem,problemSize):
                         chkTemp = -1
                         break
             if chkTemp is 0:
-                frontier.insert(0,next_state) #depth search
+                next_state[2]=pathCost+h(next_state,problemSize)
+                frontier.append(next_state) #depth search
 
 ####################### Function #############################
 #
@@ -328,12 +331,12 @@ def h(state,problemSize):
     
     # compute number of obstacles
     numObstacles=0
-    for x in range(Rcol,problemSie[col]):
-        if [Rlin,x] not in board['-']:
-            numObstacles = numObstacles + 1
+    # for x in range(Rcol,problemSie[col]):
+    #     if [Rlin,x] not in board['-']:
+    #         numObstacles = numObstacles + 1
 
     # store heuristic in state
-    state[2]=directPath+numObstacles
+    return directPath+numObstacles
 
 
 ####################### Function #############################
@@ -348,4 +351,3 @@ def h(state,problemSize):
 
 def decide (frontier):
     return min(frontier, key=itemgetter(2))
-    
