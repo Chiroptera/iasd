@@ -239,8 +239,8 @@ def goaltest (state,problemSize):
 #############################################################
 
 def pathCost(state):
-    pathCost=len(buildPath(state))
-    return pathCost
+    cost=len(buildPath(state))
+    return cost
 
 ####################### Function #############################
 #
@@ -266,7 +266,7 @@ def generalSearch(problem,problemSize):
         if len(frontier) == 0: # if frontier is empty, no solution found
             return False
 
-        sorted(frontier, key=itemgetter # sort frontier's states by estimation value min to max
+        sorted(frontier, key=itemgetter(2)) # sort frontier's states by estimation value min to max
         current_state = frontier.pop(0) # take state with lowest estimation
 
         explored.append(current_state) # add state chosen to explored set
@@ -290,7 +290,10 @@ def generalSearch(problem,problemSize):
                         chkTemp = -1
                         break
             if chkTemp is 0:
-                next_state[2]=pathCost+h(next_state,problemSize)
+                next_state[2]=h(next_state,problemSize) + pathCost(next_state)
+                # printState(next_state,problemSize)
+                # print("next state evaluation="+str(next_state[2])+"\n\n")
+                # raw_input("continue")
                 frontier.append(next_state) #depth search
 
 ####################### Function #############################
@@ -327,13 +330,13 @@ def h(state,problemSize):
 
     # compute direct path to goal
     directPath=0
-    directPath = problemSize[col] - 1 - Rcol
+    #directPath = problemSize[col] - 1 - Rcol
     
     # compute number of obstacles
     numObstacles=0
-    # for x in range(Rcol,problemSie[col]):
-    #     if [Rlin,x] not in board['-']:
-    #         numObstacles = numObstacles + 1
+    for x in range(Rcol,problemSize[col]):
+        if [Rlin,x] not in board['-']:
+            numObstacles = numObstacles + 1
 
     # store heuristic in state
     return directPath+numObstacles

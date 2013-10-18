@@ -7,18 +7,6 @@ end=-1 # references the coordinate of the end of the car
 lin=0 # references the line in which a position of a car is
 col=1 # references the column in which a position of a car is
 
-####################### Function #############################
-#
-# Name: printState
-# Input: state, size of problem
-# Output: nothin
-# Description: converts state to a matrix form, prints each
-#              line of matrix as matrix to screen
-#              
-#              
-#
-#############################################################
-
 def printState(state,problemSize):
     blank_matrix=[0]*problemSize[lin]
     for index,value in enumerate(blank_matrix):
@@ -28,18 +16,6 @@ def printState(state,problemSize):
             blank_matrix[mat_lin][mat_col]=elem
     for print_state_line in blank_matrix:
         print "".join(print_state_line)
-
-####################### Function #############################
-#
-# Name: loadProbem
-# Input: filename (string)
-# Output: list with problem and problem sie
-# Description: 
-#              
-#              
-#              
-#
-#############################################################
 
 def loadProblem(filename):
     
@@ -57,18 +33,6 @@ def loadProblem(filename):
                 problem[elem].append([line_num,elem_num])
 
     return [[0,0,problem],problemSize]
-
-####################### Function #############################
-#
-# Name: saveSolution
-# Input: path of actions
-# Output: file with solution
-# Description: 
-#              
-#              
-#              
-#
-#############################################################
 
 def saveSolution(actionPath):
     pass
@@ -161,10 +125,10 @@ def actions(stateIn,problemSize):
 # Name: results
 # Input: state, action <- [car,direction,quantity]
 # Output: result_state
-# Description: 
-#              
-#              
-#              
+# Description: reads position of each car into dictionary; for
+#              each car, check if movement is horizontal or
+#              vertical; check how many moves possible for any
+#              direction; return list of possible moves
 #
 #############################################################
 
@@ -209,20 +173,25 @@ def results(state,action):
                 if ind == len(result_state[action[0]])-1:
                     result_state['-'].remove(coord)
     result_state['-'].sort() # this has to be done to ensure correct state comparison in general search
+    #print "list(action)=",action
+    #print "return=",[state,list(action),result_state]
+    #raw_input("wh")
     return [state,list(action),result_state]
 
 
 ####################### Function #############################
 #
 # Name: goaltest
-# Input: state, problemSize
-# Output: boolean
-# Description: checks if end of the car is right wall of board
+# Input: state, action
+# Output: state
+# Description: reads position of each car into dictionary; for
+#              each car, check if movement is horizontal or
+#              vertical; check how many moves possible for any
+#              direction; return list of possible moves
 #
 #############################################################
-
-def goaltest (state,problemSize):
-    if state[-1]['R'][end][col] == problemSize[col]-1 :
+def goaltest (state):
+    if state[-1]['R'][end][col] == 5 :
         return True
     return False
 
@@ -238,18 +207,18 @@ def goaltest (state,problemSize):
 #
 #############################################################
 
-def path_cost(path):
-    return len(path)
+def path_cost():
+    pass
 
 ####################### Function #############################
 #
 # Name: general_search
 # Input: state
-# Output: solution
-# Description: 
-#              
-#              
-#              
+# Output: possible_solutions
+# Description: reads position of each car into dictionary; for
+#              each car, check if movement is horizontal or
+#              vertical; check how many moves possible for any
+#              direction; return list of possible moves
 #
 #############################################################
 
@@ -262,24 +231,45 @@ def generalSearch(problem,problemSize):
     frontier.append(problem) # append original problem to frontier
 
     while 1:
+        #print "frontier len=",len(frontier)
         if len(frontier) == 0: # if frontier is empty, no solution found
-            return False
+            #print "num of paths=",len(paths)
+            return paths
 
         current_state=frontier.pop(0)  # decide which state from the fronter to explore (always the 1st)
 
+        #print("Tree level="+str(len(buildPath(current_state))))
+#        print("Action choosen="+str(current_state[1]))
+
+
         explored.append(current_state) # add state chosen to explored set
+        #printState(current_state[-1],problemSize)
         current_actions=actions(current_state,problemSize) # determine actions available fo current state
+
+#        print("Possible actions for this state="+str(current_actions))
+#        raw_input("continue")
 
         for x in current_actions: #for each action
             next_state=results(current_state,x) # determine its result
 
-            if goaltest(next_state,problemSize) is True: # if result is goal
+            if goaltest(next_state) is True: # if result is goal
                 paths.append(buildPath(next_state)) # calculate path to result and add it to paths
-                return paths
+                #print(str(paths[-1]))
+                if len(paths[-1]) <= 87:
+                    return paths
+                #raw_input("sol found")
+                #print "path len=",len(paths[-1])
+                #return paths
+                #raw_input("Solution found.")
+                break #since current state leads to solution, ignore any other possible 
 
             chkTemp=0
             for exp in explored:
                 if next_state[-1] == exp[-1]:
+                    #printState(exp[-1],problemSize)
+                    #print next_state
+                    #printState(next_state[-1],problemSize)
+                    #raw_input("continue...")
                     chkTemp=-1
                     break
             if chkTemp is not -1:
@@ -288,21 +278,21 @@ def generalSearch(problem,problemSize):
                         chkTemp=-1
                         break
             if chkTemp is 0:
-                frontier.insert(0,next_state) #depth search
+                #frontier.insert(0,next_state) #depth search
+                frontier.append(next_state) #breath first search
 
-####################### Function #############################
-#
-# Name: buildPath
-# Input: state
-# Output: path
-# Description: receives a state and tracks the previous states
-#              until the very first or
-#
-#############################################################
 
 def buildPath(state):
-    path=list()
+    solution=list()
     while(state[0] is not 0):
-        path.insert(0,state[1])
+        # print "solution",solution
+        # raw_input("get state[-1]")
+        # print "state[1]",state[1]
+        # raw_input("get state[1]")
+        # print "state[1]",state[1]
+        # raw_input("get state[0]")
+        # print state[0]
+#        raw_input("what")
+        solution.insert(0,state[1])
         state=state[0]
-    return path
+    return solution
