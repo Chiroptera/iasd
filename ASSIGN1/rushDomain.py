@@ -14,12 +14,13 @@ col=1 # references the column in which a position of a car is
 # Output: nothin
 # Description: converts state to a matrix form, prints each
 #              line of matrix as matrix to screen
-#              
-#              
+#
+#
 #
 #############################################################
 
-def printState(state,problemSize):
+def printState(stateIn,problemSize):
+    state=stateIn[-1]
     blank_matrix=[0]*problemSize[lin]
     for index,value in enumerate(blank_matrix):
         blank_matrix[index]=[0]*problemSize[col]
@@ -34,15 +35,15 @@ def printState(state,problemSize):
 # Name: loadProbem
 # Input: filename (string)
 # Output: list with problem and problem sie
-# Description: 
-#              
-#              
-#              
+# Description:
+#
+#
+#
 #
 #############################################################
 
 def loadProblem(filename):
-    
+
     matrix = [line.strip() for line in open(filename)] #get all lines from file
     matrix = [line for line in matrix if line] #delete blank lines
     matrix = map(list,matrix) #seperate characters in string
@@ -103,7 +104,7 @@ def actions(stateIn,problemSize):
                         break
 
             ## check rightward movement
-            if car_end_col is not problemSize[col]-1: 
+            if car_end_col is not problemSize[col]-1:
                 move=1
 
                 while True:
@@ -168,7 +169,7 @@ def results(state,action):
                  coord[col]=coord[col]-1
                  if ind == 0:
                      result_state['-'].remove(coord)
-            
+
     ## MOVE RIGHT
     elif action[1] is 'R':
         for x in range(action[2]):
@@ -219,18 +220,32 @@ def goaltest (state,problemSize):
 
 ####################### Function #############################
 #
-# Name: path_cost
-# Input: state (matrix of problem)
-# Output: possible_actions (list of possible actions)
-# Description: reads position of each car into dictionary; for
-#              each car, check if movement is horizontal or
-#              vertical; check how many moves possible for any
-#              direction; return list of possible moves
+# Name: pathCost
+# Input: path
+# Output: length of path
+# Description:
+#
+#
+#
 #
 #############################################################
 
-def path_cost(path):
+def pathCost(path):
     return len(path)
+
+####################### Function #############################
+#
+# Name: stateDepth
+# Input: state
+# Output: depth of state
+# Description: builds the path from current state to initial
+#              problem and calculates it's length.
+#
+#############################################################
+
+def stateDepth(state):
+    return len(buildPath(state))
+
 ####################### Function #############################
 #
 # Name: buildPath
@@ -255,3 +270,49 @@ def buildPath(state):
         solution.insert(0,state[1])
         state=state[0]
     return solution
+
+####################### Function #############################
+#
+# Name: h
+# Input: state, problem size
+# Output: hValue
+# Description: receives a state and computes the heuristic
+#              value for that state
+#
+#############################################################
+
+def h(state,problemSize):
+    board=state[-1]           # get board from state
+    Rcol=board['R'][end][col]
+    Rlin=board['R'][end][lin]
+
+
+
+    # compute direct path to goal
+    directPath = 0
+    directPath = problemSize[col] - 1 - Rcol
+
+
+
+
+
+    # compute number of obstacles
+    numObstacles = 0
+    for x in range(Rcol+1,problemSize[col]):
+   #     print("inside evaluation function [Rlin,x]="+str([Rlin,x]))
+    #    print("is it in -?"+str([Rlin,x] in board['-']))
+        if [Rlin,x] not in board['-']:
+            numObstacles = numObstacles + 1
+
+
+    # printState(state,problemSize)
+    # print("direct path="+str(directPath))
+    # print("number of obstacles="+str(numObstacles))
+    # result=directPath + numObstacles
+    # print("result="+str(result))
+    # raw_input("what")
+
+
+        # store heuristic in state
+    #numObstacles=0
+    return directPath+numObstacles

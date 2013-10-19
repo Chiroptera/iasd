@@ -39,7 +39,7 @@ def generalSearch(problem,problemSize):
                 #print "path len=",len(paths[-1])
                 #return paths
                 #raw_input("Solution found.")
-                break #since current state leads to solution, ignore any other possible 
+                break #since current state leads to solution, ignore any other possible
 
             chkTemp=0
             for exp in explored:

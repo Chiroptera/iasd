@@ -1,6 +1,8 @@
 import copy
 import time
 from operator import itemgetter
+import rushDomain
+
 # aid variables -> help in referencing different things throughout the code
 start=0 # references the coordinate of the beggining of the car
 end=-1 # references the coordinate of the end of the car
@@ -14,8 +16,8 @@ col=1 # references the column in which a position of a car is
 # Output: nothin
 # Description: converts state to a matrix form, prints each
 #              line of matrix as matrix to screen
-#              
-#              
+#
+#
 #
 #############################################################
 
@@ -34,15 +36,15 @@ def printState(state,problemSize):
 # Name: loadProbem
 # Input: filename (string)
 # Output: list with problem and problem sie
-# Description: 
-#              
-#              
-#              
+# Description:
+#
+#
+#
 #
 #############################################################
 
 def loadProblem(filename):
-    
+
     matrix = [line.strip() for line in open(filename)] #get all lines from file
     matrix = [line for line in matrix if line] #delete blank lines
     matrix = map(list,matrix) #seperate characters in string
@@ -63,10 +65,10 @@ def loadProblem(filename):
 # Name: saveSolution
 # Input: path of actions
 # Output: file with solution
-# Description: 
-#              
-#              
-#              
+# Description:
+#
+#
+#
 #
 #############################################################
 
@@ -76,181 +78,16 @@ def saveSolution(actionPath):
 ####################### Function #############################
 #
 # Name: actions
-# Input: state (matrix of problem)
-# Output: possible_actions (list of possible actions)
-# Description: reads position of each car into dictionary; for
-#              each car, check if movement is horizontal or
-#              vertical; check how many moves possible for any
-#              direction; return list of possible moves
-#
-#############################################################
-
-
-def actions(stateIn,problemSize):
-
-    possible_actions=list()
-    state=stateIn[-1]
-
-    #for each car in the list, check what are the possible actions
-    for car in state:
-        if car is '-':
-            continue
-
-        ### HORIZONTAL MOVEMENT
-        if state[car][start][lin] is state[car][end][lin]: #checks if the line of start and end coordinate match
-            car_line=state[car][start][lin] #line in which car moves
-            car_start_col=state[car][start][col] #head coordinate of car
-            car_end_col=state[car][end][col] #tail coordinate of car
-
-            ## check leftward movement
-            if car_start_col is not 0: #if car doens't start at left wall
-                move=1 #initiate move counter
-
-                while True:
-                    # if point before head is in the set of coordinates of '-', it's a possible move
-                    if [car_line,car_start_col - move] in state['-']:
-                        possible_actions.append([car,'L',move])
-                        move = move +1
-                    else:
-                        break
-
-            ## check rightward movement
-            if car_end_col is not problemSize[col]-1: 
-                move=1
-
-                while True:
-                    if [car_line,car_end_col + move] in state['-']:
-                        possible_actions.append([car,'R',move])
-                        move = move +1
-                    else:
-                        break
-
-    ### VERTICAL MOVEMENT
-        elif state[car][start][col] is state[car][end][col]:
-            car_col=state[car][start][col]
-            car_start_lin=state[car][start][lin]
-            car_end_lin=state[car][end][lin]
-
-            ## check upward movement
-            if car_start_lin is not 0: #if car doesn't start at upper wall
-                move=1
-
-                while True:
-                    # if point before head is in the set of coordinates of '-', it's a possible move
-                    if [car_start_lin - move,car_col] in state['-']:
-                        possible_actions.append([car,'U',move])
-                        move = move +1
-                    else:
-                        break
-
-            ##check downward movement
-            if state[car][end][lin] is not problemSize[lin]-1: #if state doesn't end at lower wall
-                move=1
-                while True:
-                    # if point before head is in the set of coordinates of '-', it's a possible move
-                    if [car_end_lin + move,car_col] in state['-']:
-                        possible_actions.append([car,'D',move])
-                        move = move +1
-                    else:
-                        break
-    return possible_actions
-
-
-####################### Function #############################
-#
-# Name: results
-# Input: state, action <- [car,direction,quantity]
-# Output: result_state
-# Description: 
-#              
-#              
-#              
-#
-#############################################################
-
-def results(state,action):
-    result_state=copy.deepcopy(state[-1])
-
-    ## MOVE LEFT
-    if action[1] is 'L':
-        for x in range(action[2]):
-            for ind,coord in enumerate(result_state[action[0]]):
-                 if ind == len(result_state[action[0]]) - 1:
-                    result_state['-'].append(coord[:])
-                 coord[col] = coord[col]-1
-                 if ind == 0:
-                     result_state['-'].remove(coord)
-            
-    ## MOVE RIGHT
-    elif action[1] is 'R':
-        for x in range(action[2]):
-            for ind,coord in enumerate(result_state[action[0]]):
-                if ind == 0:
-                    result_state['-'].append(coord[:])
-                coord[col] = coord[col]+1
-                if ind == len(result_state[action[0]])-1:
-                    result_state['-'].remove(coord)
-    ## MOVE UP
-    elif action[1] is 'U':
-        for x in range(action[2]):
-            for ind,coord in enumerate(result_state[action[0]]):
-                if ind == len(result_state[action[0]]) - 1:
-                    result_state['-'].append(coord[:])
-                coord[lin] = coord[lin]-1
-                if ind == 0:
-                    result_state['-'].remove(coord)
-    ## MOVE DOWN
-    elif action[1] is 'D':
-        for x in range(action[2]):
-            for ind,coord in enumerate(result_state[action[0]]):
-                if ind == 0:
-                    result_state['-'].append(coord[:])
-                coord[lin] = coord[lin]+1
-                if ind == len(result_state[action[0]]) - 1:
-                    result_state['-'].remove(coord)
-    result_state['-'].sort() # this has to be done to ensure correct state comparison in general search
-    return [state,list(action),0,result_state]
-
-
-####################### Function #############################
-#
-# Name: goaltest
-# Input: state, problemSize
-# Output: boolean
-# Description: checks if end of the car is right wall of board
-#
-#############################################################
-
-def goaltest (state,problemSize):
-    if state[-1]['R'][end][col] == problemSize[col]-1 :
-        return True
-    return False
-
-####################### Function #############################
-#
-# Name: path_cost
-# Input: state (matrix of problem)
-# Output: possible_actions (list of possible actions)
-# Description: reads position of each car into dictionary; for
-#              each car, check if movement is horizontal or
-#              vertical; check how many moves possible for any
-#              direction; return list of possible moves
-#
-#############################################################
-
-def pathCost(state):
-    cost=len(buildPath(state))
-    return cost
 
 ####################### Function #############################
 #
 # Name: general_search
 # Input: state
 # Output: solution
-# Description: 
-#              
-#              
-#              
+# Description:
+#
+#
+#
 #
 #############################################################
 
@@ -266,80 +103,81 @@ def generalSearch(problem,problemSize):
         if len(frontier) == 0: # if frontier is empty, no solution found
             return False
 
-        sorted(frontier, key=itemgetter(2)) # sort frontier's states by estimation value min to max
-        current_state = frontier.pop(0) # take state with lowest estimation
+        # take state with lowest estimation
+        #current_state = frontier.pop(0)
+        current_state=decide(frontier)
+        frontier.remove(current_state)
 
-        explored.append(current_state) # add state chosen to explored set
-        current_actions=actions(current_state,problemSize) # determine actions available fo current state
+        #somethin=itemgetter(2)
+        #frontier_h=map(somethin,frontier)
+        #("h of frontier sorted= "+str(frontier_h))
+
+        #rushDomain.printState(current_state,problemSize)
+        #print("current state evaluation="+str(current_state[2])+"\n\n")
+        #raw_input("continue")
+
+        # add state chosen to explored set
+        explored.append(current_state)
+
+        # determine actions available for current state
+        current_actions=rushDomain.actions(current_state,problemSize)
 
         for x in current_actions: #for each action
-            next_state = results(current_state,x) # determine its result
+            next_state = rushDomain.results(current_state,x) # determine its result
 
-            if goaltest(next_state,problemSize) is True: # if result is goal
-                paths.append(buildPath(next_state)) # calculate path to result and add it to paths
+            if rushDomain.goaltest(next_state,problemSize) is True: # if result is goal
+                 # reconstruct solution path and add it to paths
+                paths.append(rushDomain.buildPath(next_state))
                 return paths
+
 
             chkTemp = 0
             for exp in explored:
-                if next_state[-1] == exp[-1]:
-                    chkTemp = -1
+                # checks if new state belongs to explores and
+                # if it does checks if its depth is bigger than the explored state
+                # we don't want to add states with bigger depth to frontier
+                if next_state[-1] == exp[-1] and rushDomain.stateDepth(next_state) >= rushDomain.stateDepth(exp):
+                    chkTemp = -1 # new states with bigger depth are not added
                     break
+
             if chkTemp is not -1:
                 for fro in frontier:
+                    # checks if new state belongs to the frontier
                     if next_state[-1] == fro[-1]:
+                        # if new state has less depth than state in frontier, then
+                        # delete state in frontier because new state will be added after
+                        if rushDomain.stateDepth(next_state) < rushDomain.stateDepth(fro):
+                            frontier.remove(fro)
                         chkTemp = -1
-                        break
+                        break;
+
+            # if new state doesn't belong to frontier or explored or has
+            # a depth lower that any
             if chkTemp is 0:
-                next_state[2]=h(next_state,problemSize) + pathCost(next_state)
+                next_state[2]=rushDomain.h(next_state,problemSize) #+ rushDomain.stateDepth(next_state)
                 # printState(next_state,problemSize)
                 # print("next state evaluation="+str(next_state[2])+"\n\n")
                 # raw_input("continue")
-                frontier.append(next_state) #depth search
+                frontier.append(next_state)
 
-####################### Function #############################
-#
-# Name: buildPath
-# Input: state
-# Output: path
-# Description: receives a state and tracks the previous states
-#              until the very first or
-#
-#############################################################
+        # sort frontier's states by estimation value min to max
+        # getcount=itemgetter(2)
+        # thingy=map(getcount,frontier)
 
-def buildPath(state):
-    path=list()
-    while(state[0] is not 0):
-        path.insert(0,state[1])
-        state=state[0]
-    return path
+        # print("before="+str(thingy))
+        # #sorted(frontier, key=getcount)
+        # #frontier.sort()
+        # getcount=itemgetter(2)
+        # thingy=map(getcount,frontier)
+        # print("after="+str(thingy))
 
-####################### Function #############################
-#
-# Name: h
-# Input: state, problem size
-# Output: hValue
-# Description: receives a state and computes the heuristic
-#              value for that state
-#
-#############################################################
+        # minstate=decide(frontier)
+        # rushDomain.printState(minstate,problemSize)
+        # print("h of minstate="+str(minstate[2]))
 
-def h(state,problemSize):
-    board=state[-1]           # get board from state
-    Rcol=board['R'][end][col]
-    Rlin=board['R'][end][lin]
 
-    # compute direct path to goal
-    directPath=0
-    #directPath = problemSize[col] - 1 - Rcol
-    
-    # compute number of obstacles
-    numObstacles=0
-    for x in range(Rcol,problemSize[col]):
-        if [Rlin,x] not in board['-']:
-            numObstacles = numObstacles + 1
 
-    # store heuristic in state
-    return directPath+numObstacles
+
 
 
 ####################### Function #############################
