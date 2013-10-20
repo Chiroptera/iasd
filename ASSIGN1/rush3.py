@@ -1,6 +1,6 @@
 import rushDomain
 
-def generalSearch(problem,problemSize):
+def generalSearch(problem):
 
     frontier=list() # create list for states in frontier
     explored=list() # create list for explored states
@@ -21,8 +21,8 @@ def generalSearch(problem,problemSize):
 
 
         explored.append(current_state) # add state chosen to explored set
-        #printState(current_state[-1],problemSize)
-        current_actions=rushDomain.actions(current_state,problemSize) # determine actions available fo current state
+        #printState(current_state[-1])
+        current_actions=rushDomain.actions(current_state) # determine actions available fo current state
 
 #        print("Possible actions for this state="+str(current_actions))
 #        raw_input("continue")
@@ -30,7 +30,7 @@ def generalSearch(problem,problemSize):
         for x in current_actions: #for each action
             next_state=rushDomain.results(current_state,x) # determine its result
 
-            if rushDomain.goaltest(next_state,problemSize) is True: # if result is goal
+            if rushDomain.goaltest(next_state) is True: # if result is goal
                 paths.append(rushDomain.buildPath(next_state)) # calculate path to result and add it to paths
                 #print(str(paths[-1]))
                 if len(paths[-1]) <= 87:
@@ -43,16 +43,16 @@ def generalSearch(problem,problemSize):
 
             chkTemp=0
             for exp in explored:
-                if next_state[-1] == exp[-1]:
-                    #printState(exp[-1],problemSize)
+                if rushDomain.cmpStates(next_state,exp):
+                    #printState(exp[-1])
                     #print next_state
-                    #printState(next_state[-1],problemSize)
+                    #printState(next_state[-1])
                     #raw_input("continue...")
                     chkTemp=-1
                     break
             if chkTemp is not -1:
                 for fro in frontier:
-                    if next_state[-1] == fro[-1]:
+                    if rushDomain.cmpStates(next_state,fro):
                         chkTemp=-1
                         break
             if chkTemp is 0:

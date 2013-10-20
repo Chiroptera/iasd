@@ -21,10 +21,10 @@ problem=rushDomain.loadProblem(filename_read)
 
 print("Solving problem...")
 start=time.time() # store start time for runtime computation
-#solution=rush3.generalSearch(problem[0],problem[-1]) # problem[0]=problem
+#solution=rush3.generalSearch(problem) # problem[0]=problem
                                                      # problem[1]=problemSize
 
-solution=rushA.generalSearch(problem[0],problem[-1])
+solution=rushA.generalSearch(problem)
 
 # compute search runtime
 runtime=time.time()-start

@@ -1,5 +1,6 @@
 import copy
 import time
+from operator import itemgetter
 
 # aid variables -> help in referencing different things throughout the code
 start=0 # references the coordinate of the beggining of the car
@@ -11,7 +12,7 @@ col=1 # references the column in which a position of a car is
 #
 # Name: printState
 # Input: state, size of problem
-# Output: nothin
+# Output:
 # Description: converts state to a matrix form, prints each
 #              line of matrix as matrix to screen
 #
@@ -19,14 +20,18 @@ col=1 # references the column in which a position of a car is
 #
 #############################################################
 
-def printState(stateIn,problemSize):
-    state=stateIn[-1]
-    blank_matrix=[0]*problemSize[lin]
+def printState(stateIn):
+    state = stateIn[-1]
+    problemSize = stateIn[3]
+    blank_matrix = [0]*problemSize[lin]
+
     for index,value in enumerate(blank_matrix):
-        blank_matrix[index]=[0]*problemSize[col]
+        blank_matrix[index] = [0] * problemSize[col]
+
     for elem in state:
         for mat_lin,mat_col in state[elem]:
-            blank_matrix[mat_lin][mat_col]=elem
+            blank_matrix[mat_lin][mat_col] = elem
+
     for print_state_line in blank_matrix:
         print "".join(print_state_line)
 
@@ -34,11 +39,12 @@ def printState(stateIn,problemSize):
 #
 # Name: loadProbem
 # Input: filename (string)
-# Output: list with problem and problem sie
-# Description:
-#
-#
-#
+# Output: state representation
+# Description: reads problem from file, converts problem to
+#              a dictionary and returns a list containing
+#              all the parameters a state has: parent state (0),
+#              action that resulted in current state (0),
+#              heuristic value, problem size and board distribution
 #
 #############################################################
 
@@ -49,7 +55,8 @@ def loadProblem(filename):
     matrix = map(list,matrix) #seperate characters in string
     problemSize=[len(matrix),len(matrix[0])]
     problem=dict()
-    # store agens in matrix to dictionary problems
+
+    # store agents in matrix to dictionary problems
     for line_num,line in enumerate(matrix): #for each line in matrix
         for elem_num,elem in enumerate(line): #for each element elem in line
             if elem not in problem:
@@ -57,7 +64,8 @@ def loadProblem(filename):
             else:
                 problem[elem].append([line_num,elem_num])
 
-    return [[0,0,0,problem],problemSize]
+    # [parent state,action,heuristic value,problem size,state]
+    return [0,0,0,problemSize,problem]
 
 def saveSolution(actionPath):
     pass
@@ -75,9 +83,10 @@ def saveSolution(actionPath):
 #############################################################
 
 
-def actions(stateIn,problemSize):
+def actions(stateIn):
 
     possible_actions=list()
+    problemSize=stateIn[3]
     state=stateIn[-1]
 
     #for each car in the list, check what are the possible actions
@@ -201,7 +210,8 @@ def results(state,action):
     #print "list(action)=",action
     #print "return=",[state,list(action),result_state]
     #raw_input("wh")
-    return [state,list(action),0,result_state]
+    problemSize=state[3]        # problem size must be in result state
+    return [state,list(action),0,problemSize,result_state]
 
 
 ####################### Function #############################
@@ -213,7 +223,8 @@ def results(state,action):
 #
 #############################################################
 
-def goaltest (state,problemSize):
+def goaltest (state):
+    problemSize=state[3]
     if state[-1]['R'][end][col] == problemSize[col]-1 :
         return True
     return False
@@ -231,7 +242,10 @@ def goaltest (state,problemSize):
 #############################################################
 
 def pathCost(path):
-    return len(path)
+    cost=0
+    for x in path:
+        cost = cost + x[2]
+    return cost
 
 ####################### Function #############################
 #
@@ -244,7 +258,24 @@ def pathCost(path):
 #############################################################
 
 def stateDepth(state):
-    return len(buildPath(state))
+    return pathCost(buildPath(state))
+    #return len(buildPath(state))
+
+####################### Function #############################
+#
+# Name: cmpStates
+# Input: state1, state2
+# Output: True or False
+# Description: takes two states and compares if their boards
+#              are equal (True) or not (False)
+#
+#############################################################
+
+def cmpStates(state1,state2):
+    if state1[-1] == state2[-1]:
+        return True
+    else:
+        return False
 
 ####################### Function #############################
 #
@@ -271,6 +302,17 @@ def buildPath(state):
         state=state[0]
     return solution
 
+
+     ############################################################
+     #                                                          #
+     #            HEURISTIC                                     #
+     #                                                          #
+     #                      RELATED                             #
+     #                                                          #
+     #                                  FUNCTIONS               #
+     #                                                          #
+     ############################################################
+
 ####################### Function #############################
 #
 # Name: h
@@ -281,38 +323,58 @@ def buildPath(state):
 #
 #############################################################
 
-def h(state,problemSize):
+def h(state):
     board=state[-1]           # get board from state
-    Rcol=board['R'][end][col]
-    Rlin=board['R'][end][lin]
-
-
+    problemSize=state[3]      # get problem size from state representation
+    Rcol=board['R'][end][col] # get column of red car
+    Rlin=board['R'][end][lin] # get line of red car
 
     # compute direct path to goal
     directPath = 0
     directPath = problemSize[col] - 1 - Rcol
 
-
-
-
-
-    # compute number of obstacles
+    # compute number of obstacles (cars) between red car and goal
     numObstacles = 0
     for x in range(Rcol+1,problemSize[col]):
-   #     print("inside evaluation function [Rlin,x]="+str([Rlin,x]))
-    #    print("is it in -?"+str([Rlin,x] in board['-']))
         if [Rlin,x] not in board['-']:
             numObstacles = numObstacles + 1
 
-
-    # printState(state,problemSize)
+    # printState(state)
     # print("direct path="+str(directPath))
     # print("number of obstacles="+str(numObstacles))
     # result=directPath + numObstacles
     # print("result="+str(result))
     # raw_input("what")
 
-
-        # store heuristic in state
-    #numObstacles=0
+    # store heuristic in state
+    #numObstacles = 0 # simple direct path heuristic
+    #directPath = 0 # simple number of obstacles heuristic
     return directPath+numObstacles
+
+
+####################### Function #############################
+#
+# Name: decide
+# Input: frontier
+# Output: state
+# Description: receives frontier and returns the state with
+#              the minimum heuristic value
+#
+#############################################################
+
+def setHeuristic(state,heuristic):
+    state[2] = heuristic
+
+
+####################### Function #############################
+#
+# Name: hmin
+# Input: frontier
+# Output: state
+# Description: receives frontier and returns the state with
+#              the minimum heuristic value
+#
+#############################################################
+
+def hmin (frontier):
+    return min(frontier, key=itemgetter(2))
