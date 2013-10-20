@@ -206,11 +206,10 @@ def results(state,action):
                 coord[lin]=coord[lin]+1
                 if ind == len(result_state[action[0]])-1:
                     result_state['-'].remove(coord)
+
     result_state['-'].sort() # this has to be done to ensure correct state comparison in general search
-    #print "list(action)=",action
-    #print "return=",[state,list(action),result_state]
-    #raw_input("wh")
-    problemSize=state[3]        # problem size must be in result state
+    problemSize=state[3]     # problem size must be in result state
+
     return [state,list(action),0,problemSize,result_state]
 
 
@@ -225,6 +224,8 @@ def results(state,action):
 
 def goaltest (state):
     problemSize=state[3]
+
+    # last column of red car must equal last column of problem
     if state[-1]['R'][end][col] == problemSize[col]-1 :
         return True
     return False
@@ -258,8 +259,8 @@ def pathCost(path):
 #############################################################
 
 def stateDepth(state):
-    return pathCost(buildPath(state))
-    #return len(buildPath(state))
+    return pathCost(buildPath(state)) # return real path cost
+    #return len(buildPath(state)) #return depth level
 
 ####################### Function #############################
 #
@@ -289,17 +290,9 @@ def cmpStates(state1,state2):
 
 def buildPath(state):
     solution=list()
-    while(state[0] is not 0):
-        # print "solution",solution
-        # raw_input("get state[-1]")
-        # print "state[1]",state[1]
-        # raw_input("get state[1]")
-        # print "state[1]",state[1]
-        # raw_input("get state[0]")
-        # print state[0]
-#        raw_input("what")
-        solution.insert(0,state[1])
-        state=state[0]
+    while(state[0] is not 0):   # while initial state is not reached
+        solution.insert(0,state[1]) # add state state to solution path
+        state=state[0]              # state is now its parent
     return solution
 
 
@@ -339,13 +332,6 @@ def h(state):
         if [Rlin,x] not in board['-']:
             numObstacles = numObstacles + 1
 
-    # printState(state)
-    # print("direct path="+str(directPath))
-    # print("number of obstacles="+str(numObstacles))
-    # result=directPath + numObstacles
-    # print("result="+str(result))
-    # raw_input("what")
-
     # store heuristic in state
     #numObstacles = 0 # simple direct path heuristic
     #directPath = 0 # simple number of obstacles heuristic
@@ -378,3 +364,18 @@ def setHeuristic(state,heuristic):
 
 def hmin (frontier):
     return min(frontier, key=itemgetter(2))
+
+####################### Function #############################
+#
+# Name: chkTriangle
+# Input: stateP (parent), stateC (child)
+# Output: True or False
+# Description: check triangle inequality
+#
+#
+#############################################################
+
+def chkTriangle (stateP,stateC):
+    if stateP[2] <= stateC[1][-1] + h(stateC):
+        return True
+    return False

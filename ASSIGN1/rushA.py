@@ -18,6 +18,9 @@ def generalSearch(problem):
     explored=list() # create list for explored states
     paths=list() # crate list for possible paths
 
+    trichk=0
+
+    rushDomain.setHeuristic(problem,rushDomain.h(problem)) # set initial state heuristic value
     frontier.append(problem) # append original problem to frontier
 
     while 1:
@@ -30,14 +33,6 @@ def generalSearch(problem):
         # remove state chosen from frontier
         frontier.remove(current_state)
 
-        #somethin=itemgetter(2)
-        #frontier_h=map(somethin,frontier)
-        #("h of frontier sorted= "+str(frontier_h))
-
-        #rushDomain.printState(current_state)
-        #print("current state evaluation="+str(current_state[2])+"\n\n")
-        #raw_input("continue")
-
         # add state chosen to explored set
         explored.append(current_state)
 
@@ -48,9 +43,9 @@ def generalSearch(problem):
             next_state = rushDomain.results(current_state,x) # determine its result
 
             if rushDomain.goaltest(next_state) is True: # if result is goal
-                 # reconstruct solution path and add it to paths
+                # reconstruct solution path and add it to paths
                 paths.append(rushDomain.buildPath(next_state))
-                return paths
+                return paths    # return first solution found
 
 
             chkTemp = 0
@@ -62,38 +57,20 @@ def generalSearch(problem):
                     chkTemp = -1 # new states with bigger depth are not added
                     break
 
-            if chkTemp is not -1:
+            if chkTemp is 0:
                 for fro in frontier:
                     # checks if new state belongs to the frontier
                     if rushDomain.cmpStates(next_state,fro):
                         # if new state has less depth than state in frontier, then
                         # delete state in frontier because new state will be added after
+                        # and is better than the previous
                         if rushDomain.stateDepth(next_state) < rushDomain.stateDepth(fro):
                             frontier.remove(fro)
                         chkTemp = -1
                         break;
 
             # if new state doesn't belong to frontier or explored or has
-            # a depth lower that any
+            # a depth lower that any other state, add state to frontier
             if chkTemp is 0:
                 rushDomain.setHeuristic(next_state,rushDomain.h(next_state))
-                # next_state[2]=rushDomain.h(next_state) #+ rushDomain.stateDepth(next_state)
-                # printState(next_state)
-                # print("next state evaluation="+str(next_state[2])+"\n\n")
-                # raw_input("continue")
                 frontier.append(next_state)
-
-        # sort frontier's states by estimation value min to max
-        # getcount=itemgetter(2)
-        # thingy=map(getcount,frontier)
-
-        # print("before="+str(thingy))
-        # #sorted(frontier, key=getcount)
-        # #frontier.sort()
-        # getcount=itemgetter(2)
-        # thingy=map(getcount,frontier)
-        # print("after="+str(thingy))
-
-        # minstate=decide(frontier)
-        # rushDomain.printState(minstate)
-        # print("h of minstate="+str(minstate[2]))
