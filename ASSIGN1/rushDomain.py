@@ -248,6 +248,8 @@ def pathCost(path):
         cost = cost + x[2]
     return cost
 
+
+
 ####################### Function #############################
 #
 # Name: stateDepth
@@ -259,8 +261,8 @@ def pathCost(path):
 #############################################################
 
 def stateDepth(state):
-    return pathCost(buildPath(state)) # return real path cost
-    #return len(buildPath(state)) #return depth level
+    #return pathCost(buildPath(state)) # return real path cost
+    return len(buildPath(state)) #return depth level
 
 ####################### Function #############################
 #
@@ -334,7 +336,7 @@ def h(state):
 
     # store heuristic in state
     #numObstacles = 0 # simple direct path heuristic
-    #directPath = 0 # simple number of obstacles heuristic
+    directPath = 0 # simple number of obstacles heuristic
     return directPath+numObstacles
 
 

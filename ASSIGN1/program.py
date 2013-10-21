@@ -6,10 +6,13 @@ import time
 
 print("---------------- RUSH HOUR SOLVER ----------------")
 
-if len(sys.argv) == 2:
+if len(sys.argv) <= 3 and len(sys.argv) > 1:
     cmdargs=str(sys.argv)
 else:
-   sys.exit("Correct usage: python program.py filename")
+    print("Correct usage:\n")
+    print("python program.py filename with default for heuristic search.")
+    print("python proglram.py filename -h/-s for heuristic or simple search")
+
 
 # parse name of file of problem
 filename_read=str(sys.argv[1])
@@ -18,13 +21,16 @@ print("File: "+filename_read)
 print("Loading problem from file.")
 problem=rushDomain.loadProblem(filename_read)
 
-
-print("Solving problem...")
 start=time.time() # store start time for runtime computation
-solution=rush3.generalSearch(problem) # problem[0]=problem
-                                                     # problem[1]=problemSize
 
-#solution=rushA.generalSearch(problem)
+if len(sys.argv) == 3 and str(sys.argv[2]) == "-s":
+    print("Solving problem using simple search.")
+    solution=rush3.generalSearch(problem) # problem[0]=problem
+                                          # problem[1]=problemSize
+else:
+    print("Solving problem using heuristic search.")
+    solution=rushA.generalSearch(problem)
+
 
 # compute search runtime
 runtime=time.time()-start
@@ -34,25 +40,32 @@ if solution is not False:
 
     # create name for solution file
     filename_write=filename_read+".sol"
+    file_stats=filename_read+".stats"
 
     try:
         # This will create a new file or **overwrite an existing file**.
         f = open(filename_write, "w")
+        fs = open(file_stats,"w")
         try:
-            f.write("Runtime: "+str(runtime)+"s"+"\n")
-            #f.write("Solutions found: "+str(len(solution))+"\n")
+            fs.write("Runtime: "+str(runtime)+"s"+"\n")
+            #fs.write("Solutions found: "+str(len(solution))+"\n")
             for num,sol in enumerate(solution):
                 #f.write("----- Num"+str(num)+" -----"+"\n")
 
-                #f.write("Pathcost: "+str(len(sol))+"\n")
+                fs.write("Path length:")
+                fs.write(str(len(sol))+"\n")
+                fs.write("Path cost:")
+                fs.write(str(rushDomain.pathCost(sol))+"\n")
+
                 f.write(str(len(sol))+"\n")
-                #f.write("Path:")
                 for move in sol:
                     f.write(move[0]+move[1]+str(move[2])+"\n")
-        #    f.writelines(lines) # Write a sequence of strings to a file
+
         finally:
             f.close()
+            fs.close()
             print("Solution saved in "+filename_write)
+            print("Statistics saved in "+file_stats)
     except IOError:
         print("There was a error writing to file.")
 else:

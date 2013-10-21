@@ -72,5 +72,5 @@ def generalSearch(problem):
             # if new state doesn't belong to frontier or explored or has
             # a depth lower that any other state, add state to frontier
             if chkTemp is 0:
-                rushDomain.setHeuristic(next_state,rushDomain.h(next_state))
+                rushDomain.setHeuristic(next_state,rushDomain.h(next_state)+rushDomain.stateDepth(next_state))
                 frontier.append(next_state)
