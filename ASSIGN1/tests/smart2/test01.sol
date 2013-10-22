@@ -1,0 +1,12 @@
+Runtime: 0.446790933609s
+Path length:9
+Path cost:16
+FL1
+BD3
+AR1
+CU1
+EU1
+GL2
+FL2
+DD2
+RR3

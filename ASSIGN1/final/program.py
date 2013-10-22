@@ -2,7 +2,6 @@ import sys
 import rushDomain
 import rush3
 import rushA
-import rushA2
 import time
 
 print("---------------- RUSH HOUR SOLVER ----------------")
@@ -10,9 +9,10 @@ print("---------------- RUSH HOUR SOLVER ----------------")
 if len(sys.argv) <= 3 and len(sys.argv) > 1:
     cmdargs=str(sys.argv)
 else:
-    print("Correct usage:\n")
+    print("Correct usage:")
     print("python program.py filename with default for heuristic search.")
     print("python proglram.py filename -h/-s for heuristic or simple search")
+    sys.exit(1)
 
 
 # parse name of file of problem
@@ -30,7 +30,7 @@ if len(sys.argv) == 3 and str(sys.argv[2]) == "-s":
                                           # problem[1]=problemSize
 else:
     print("Solving problem using heuristic search.")
-    solution=rushA2.generalSearch(problem)
+    solution=rushA.generalSearch(problem)
 
 
 # compute search runtime
@@ -48,19 +48,16 @@ if solution is not False:
         f = open(filename_write, "w")
         fs = open(file_stats,"w")
         try:
+	    sol=solution[0]     # real solution is stored in first element of received list
             fs.write("Runtime: "+str(runtime)+"s"+"\n")
-            #fs.write("Solutions found: "+str(len(solution))+"\n")
-            for num,sol in enumerate(solution):
-                #f.write("----- Num"+str(num)+" -----"+"\n")
+            fs.write("Path length: ")
+            fs.write(str(len(sol))+"\n")
+	    fs.write("Nodes generated: " + str(solution[1])+"\n")
+	    fs.write("Average branching factor: " + str(solution[-1]))
 
-                fs.write("Path length:")
-                fs.write(str(len(sol))+"\n")
-                fs.write("Path cost:")
-                fs.write(str(rushDomain.pathCost(sol))+"\n")
-
-                f.write(str(len(sol))+"\n")
-                for move in sol:
-                    f.write(move[0]+move[1]+str(move[2])+"\n")
+            f.write(str(len(sol))+"\n")
+            for move in sol:
+                f.write(move[0]+move[1]+str(move[2])+"\n")
 
         finally:
             f.close()

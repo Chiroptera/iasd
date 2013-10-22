@@ -243,10 +243,7 @@ def goaltest (state):
 #############################################################
 
 def pathCost(path):
-    cost=0
-    for x in path:
-        cost = cost + x[2]
-    return cost
+    return len(path)
 
 
 
@@ -261,7 +258,6 @@ def pathCost(path):
 #############################################################
 
 def stateDepth(state):
-    #return pathCost(buildPath(state)) # return real path cost
     return len(buildPath(state)) #return depth level
 
 ####################### Function #############################
@@ -292,7 +288,7 @@ def cmpStates(state1,state2):
 
 def buildPath(state):
     solution=list()
-    while(state[0] is not 0):   # while initial state is not reached
+    while(state[0] is not 0):       # while initial state is not reached
         solution.insert(0,state[1]) # add state state to solution path
         state=state[0]              # state is now its parent
     return solution
@@ -324,19 +320,12 @@ def h(state):
     Rcol=board['R'][end][col] # get column of red car
     Rlin=board['R'][end][lin] # get line of red car
 
-    # compute direct path to goal
-    directPath = 0
-    directPath = problemSize[col] - 1 - Rcol
-
     # compute number of obstacles (cars) between red car and goal
     numObstacles = 0
     for x in range(Rcol+1,problemSize[col]):
         if [Rlin,x] not in board['-']:
             numObstacles = numObstacles + 1
-
     # store heuristic in state
-    #numObstacles = 0 # simple direct path heuristic
-    directPath = 0 # simple number of obstacles heuristic
     return directPath+numObstacles
 
 

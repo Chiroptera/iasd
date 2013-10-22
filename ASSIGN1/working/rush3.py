@@ -41,5 +41,4 @@ def generalSearch(problem):
                         chkTemp=-1
                         break
             if chkTemp is 0:
-                #frontier.insert(0,next_state) #depth search
                 frontier.append(next_state) #breath first search
