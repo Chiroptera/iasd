@@ -2,6 +2,7 @@ import sys
 import rushDomain
 import rush3
 import rushA
+import rushA2
 import time
 
 print("---------------- RUSH HOUR SOLVER ----------------")
@@ -29,7 +30,7 @@ if len(sys.argv) == 3 and str(sys.argv[2]) == "-s":
                                           # problem[1]=problemSize
 else:
     print("Solving problem using heuristic search.")
-    solution=rushA.generalSearch(problem)
+    solution=rushA2.generalSearch(problem)
 
 
 # compute search runtime

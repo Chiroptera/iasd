@@ -18,8 +18,6 @@ def generalSearch(problem):
     explored=list() # create list for explored states
     paths=list() # crate list for possible paths
 
-    trichk=0
-
     rushDomain.setHeuristic(problem,rushDomain.h(problem)) # set initial state heuristic value
     frontier.append(problem) # append original problem to frontier
 
@@ -66,7 +64,8 @@ def generalSearch(problem):
                         # and is better than the previous
                         if rushDomain.stateDepth(next_state) < rushDomain.stateDepth(fro):
                             frontier.remove(fro)
-                        chkTemp = -1
+                        else:
+                            chkTemp = -1
                         break;
 
             # if new state doesn't belong to frontier or explored or has
