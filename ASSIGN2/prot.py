@@ -1,39 +1,88 @@
 from random import randint
 
 class proposition:
-    def __init__(self, numSymbols,numClauses,symbols,clauses):
+    def __init__(self, numSymbols,numClauses,clauses):
         self.numSymbols = numSymbols
         self.numClauses = numClauses
-        self.symbols = symbols
         self.clauses = clauses
 
-    def setSymbolTrueness(self):
-        # create lists to store which symbols are true or false
-        self.symTrue = list()
-        self.symFalse = list()
+        # create dictionary and fill it with each symbol
+        self.symbols=dict()
+        for sym in range(1,numSymbols+1):
+            self.symbols[sym] = []
+    
 
+    #################   FUNCTION   #############################
+    # Name: setRandomSymbolTrueness
+    # Input: self
+    # Output: None
+    # Description: assign random values (True of False) to
+    #              every symbol
+    #              
+    #              
+    ############################################################
+    def setRandomSymbolTrueness(self):
         # for every symbol generate a random 1 or 0
         # if it's 1, add symbol to true list and its negation to false list
         # it it's 0, add symbol to false list and its negation to true list
         for sym in self.symbols:
             if randint(0,1) == 1:
-                self.symTrue.append(sym)
-                self.symFalse.append(-sym)
+                self.setSymbolValue(sym,True)
             else:
-                self.symFalse.append(sym)
-                self.symTrue.append(-sym)
+                self.setSymbolValue(sym,False)
 
-    def isSymbolTrue(self,sym):
-        if sym not in self.symbols:
-            raise NameError("Symbol doesn't exist.")
-        if sym in self.symTrue:
-            return True
+    #################   FUNCTION   #############################
+    # Name: 
+    # Input: 
+    # Output: 
+    # Description: 
+    #              
+    #              
+    #              
+    ############################################################
+    def setSymbolValue(self,symbol,value):
+        self.symbols[symbol]=value
+
+    #################   FUNCTION   #############################
+    # Name: 
+    # Input: 
+    # Output: 
+    # Description: 
+    #              
+    #              
+    #              
+    ############################################################
+
+    def symbolValue(self,sym):
+        return self.symbols[sym]
+
+    def getSymbolValue(self,sym):
+        value = self.symbols[abs(sym)]
+        if sym < 0:
+            return value
+        else:
+            return not value
 
     def isClauseTrue(self,clause):
         for sym in clause:
-            if sym in self.symTrue:
+            if self.getSymbolValue(sym) is True:
                 return True
         return False
+
+    def isSatisfied(self):
+        for clause in self.clauses:
+            if self.isClauseTrue(clause) is False:
+                return False
+        return True
+
+    def evalClauses(self):
+        count = 0
+        for clause in self.clauses:
+            if self.isClauseTrue(clause) is True:
+                count = count +1
+        return count
+
+    
 
 def loadProblem(filename):
     input = [line.strip() for line in open(filename)] #get all lines from file
@@ -65,11 +114,8 @@ def loadProblem(filename):
                 l[i]=int(l[i])
             clauses.append(l)
 
-    # store each symbol
-    for x in range(1,numberSymbols+1):
-        symbols.append(x)
 
-    problem = proposition(numberSymbols,numberClauses,symbols,clauses)
+    problem = proposition(numberSymbols,numberClauses,clauses)
     return problem
 
 
@@ -88,10 +134,24 @@ def loadProblem(filename):
 def GSAT(sentence,max_restarts,max_climbs):
 
     for i in range(0,max_restarts):
-        sentence.setSymbolTrueness()
+        sentence.setRandomSymbolTrueness()
 
         for j in range(0,max_climbs):
-            pass
+            if sentence.isSatisfied() is True:
+                return sentence
+            
+            # 1st element is the symbol, 2nd is the value
+            bestSuccessor=[0,0]
+
+            for sym in sentence.symbols.keys():
+                sentence.setSymbolValue(sym,not sentence.symbolValue(sym)) # switch symbol value
+                if sentence.evalClauses() > bestSuccessor[1]:
+                    bestSuccessor = [sym,sentence.evalClauses()]
+                sentence.setSymbolValue(sym,not sentence.symbolValue(sym)) # return original symbol value
+            
+            sentence.setSymbolValue(bestSuccessor[0],not sentence.symbolValue(bestSuccessor[0]))
+    return False
+            
 
 
 
@@ -99,7 +159,12 @@ prop=loadProblem("cnf.txt")
 print(prop.symbols)
 print(prop.clauses)
 
-prop.setSymbolTrueness()
-print(prop.symTrue)
-print(prop.symFalse)
-prop.isSymbolTrue(7)
+prop.setRandomSymbolTrueness()
+
+
+a=GSAT(prop,1,1)
+if a is False:
+    print False
+else:
+    print True
+    print a.symbols
