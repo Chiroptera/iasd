@@ -1,6 +1,8 @@
 from random import randint
 from random import choice
 from random import random
+import sys
+from time import time
 
 class proposition:
     def __init__(self, numSymbols,numClauses,clauses):
@@ -25,8 +27,7 @@ class proposition:
     ############################################################
     def setRandomSymbolTrueness(self):
         for sym in self.symbols:
-            self.setSymbolValue(sym,choice([True,False]))
-
+            self.symbols[sym]=choice([True,False])
     #################   FUNCTION   #############################
     # Name:
     # Input:
@@ -55,11 +56,11 @@ class proposition:
 
         # determine and store false clauses
         for clause in self.clauses:
-            if not self.isClauseTrue():
+            if not self.isClauseTrue(clause):
                 falseClauses.append(clause)
 
         # return random clause from false clause list
-        return choise(falseClauses)
+        return choice(falseClauses)
 
     def isClauseTrue(self,clause):
         for sym in clause:
@@ -91,8 +92,6 @@ def loadProblem(filename):
     clauses = list()
     symbols = list()
 
-    print input
-
     for l in input:
         # ignore comments
         if l[0] == 'c':
@@ -100,14 +99,17 @@ def loadProblem(filename):
         # store information about the CNF problem
         elif l[0] == 'p':
             l=l.split(" ")
+            while '' in l:      # remove null elements from list - important for correct parsing
+                l.remove('')
             print l
-            format = l[1]
             numberSymbols = int(l[2])
             numberClauses = int(l[3])
+        elif l[0] == '%':
+            break
         # store clauses
         else:
             l=l.split(" ")
-            del l[-1]
+            del l[-1]           # deletes clause terminating 0
             for i in range(0,len(l)):
                 l[i]=int(l[i])
             clauses.append(l)
@@ -116,8 +118,30 @@ def loadProblem(filename):
     problem = proposition(numberSymbols,numberClauses,clauses)
     return problem
 
-def saveProblem(filename,sentence):
-    pass
+def saveProblem(filename,sentence,runtime,algorithm):
+    if sentence is not False:
+
+        # create name for solution file
+        filename_write = filename + "." + algorithm
+
+        try:
+            # This will create a new file or **overwrite an existing file**.
+            fs = open(filename_write, "w")
+
+            try:
+                fs.write("c \n")
+                fs.write("c ALGORITHM: " + algorithm + "\n")
+                fs.write("c \n")
+                fs.write("p max " + str(sentence.numSymbols) + " " + str(sentence.numClauses) + "\n")
+                fs.write("t max " + str(sentence.numSymbols) + " " + str(sentence.numClauses) + " " + str(runtime) + " " + "0" + "\n")
+            finally:
+                fs.close()
+                print("Solution saved in " + filename_write)
+        except IOError:
+            print("There was a error writing to file.")
+            return -1
+
+
 # output file of CNF type should have .cnf extension
 # format:
 # c -comments
@@ -146,23 +170,23 @@ def WalkSAT(sentence,p,max_flips):
         # with probability p flip random symbol
         if random() < p:
             # flip random symbol in selected clause
-            sentence.switch(choice(clause))
+            sentence.switchSymbolValue(choice(clause))
         else:
             # flip symbol in clause that maximizes true clauses
             bestSuccessor=[0,0]
             for sym in clause:
                 # flip symbol
-                sentence.switchSymbol(sym)
+                sentence.switchSymbolValue(sym)
 
                 # check model evaluation
                 if sentence.evalClauses() > bestSuccessor[1]:
                     bestSuccessor=[sym,sentence.evalClauses()]
 
                 # revert symbol's value to original
-                sentence.switchSymbol(sym)
+                sentence.switchSymbolValue(sym)
 
             # flip one of the symbols that yielded the best evaluation
-            sentence.switchSymbol(bestSuccessor[0])
+            sentence.switchSymbolValue(bestSuccessor[0])
 
     return False
 
@@ -194,25 +218,46 @@ def GSAT(sentence,max_restarts,max_climbs):
     return False
 
 
+if len(sys.argv) <= 3 and len(sys.argv) > 1:
+    cmdargs=str(sys.argv)
+else:
+    print("Correct usage:")
+    print("python program.py filename with default for heuristic search.")
+    sys.exit(1)
 
+filename = str(sys.argv[1])
 
-prop=loadProblem("cnf.txt")
-print(prop.symbols)
-print(prop.clauses)
+problem=loadProblem(filename)
+print("==========================================================")
+print("====================== SAT SOLVER ========================")
+print("==========================================================")
+print(problem.symbols)
+print(problem.clauses)
 
-prop.setRandomSymbolTrueness()
+problem.setRandomSymbolTrueness()
 
-
-a=GSAT(prop,1,1)
-if a is False:
+print("........:::::::: GSAT ::::::::........")
+runtimeGSAT = time()
+problemGSAT = GSAT(problem,10,100)
+runtimeGSAT = time() -  runtimeGSAT
+print("GSAT runtime: " + str(runtimeGSAT) + "s")
+if problemGSAT is False:
     print False
 else:
     print True
-    print a.symbols
+    print problemGSAT.symbols
 
-b = WalkSAT(prop,0.6,10)
-if b is False:
+print("........:::::::: WalkSAT ::::::::........")
+runtimeWSAT = time()
+problemWSAT = WalkSAT(problem,0.6,100)
+runtimeWSAT = time() - runtimeWSAT
+print("WalkSAT runtime: " + str(runtimeWSAT) + "s")
+if problemWSAT is False:
     print False
 else:
     print True
-    print b.symbols
+    print problemWSAT.symbols
+
+
+saveProblem(filename,problemGSAT,runtimeGSAT,"GSAT")
+saveProblem(filename,problemWSAT,runtimeWSAT,"WSAT")
