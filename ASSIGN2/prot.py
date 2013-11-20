@@ -3,6 +3,23 @@ from random import choice
 from random import random
 import sys
 from time import time
+from DPLL import DPLL
+
+    #################   FUNCTION   #############################
+    # Name: absg
+    # Input: value
+    # Output: absolute of value
+    # Description: simple function to compute the absolute of
+    #              a value - reduces delays compared with
+    #              builtin function
+    #
+    ############################################################
+
+def absg(value):
+    if value > 0:
+        return value
+    else:
+        return -value
 
 class proposition:
     def __init__(self, numSymbols,numClauses,clauses):
@@ -12,55 +29,118 @@ class proposition:
 
         # create dictionary and fill it with each symbol
         self.symbols=dict()
-        for sym in range(1,numSymbols+1):
+
+    #################   CLASS METHOD   #########################
+    # Name: fillSymbols
+    # Input: self
+    # Output: None
+    # Description: from number of symbols fills symbol dictionary
+    #
+    ############################################################
+
+    def fillSymbols(self):
+        for sym in range(1,self.numSymbols+1):
             self.symbols[sym] = []
 
-
-    #################   FUNCTION   #############################
+    #################   CLASS METHOD   #########################
     # Name: setRandomSymbolTrueness
     # Input: self
     # Output: None
     # Description: assign random values (True of False) to
     #              every symbol
     #
-    #
     ############################################################
+
     def setRandomSymbolTrueness(self):
         for sym in self.symbols:
             self.symbols[sym]=choice([True,False])
-    #################   FUNCTION   #############################
-    # Name:
-    # Input:
-    # Output:
-    # Description:
+
+    #################   CLASS METHOD   #########################
+    # Name: setSymbolValue
+    # Input: self,symbol, value
+    # Output: sentence
+    # Description: receives a symbol or its negation and sets
+    #              the symbol value to the designated value
     #
-    #
+    ############################################################
+
+    def setSymbolValue(self,sym,value):
+        if sym > 0:
+            self.symbols[sym] = value
+        else:
+            self.symbols[-sym] = not value
+        return self
+
+    #################   CLASS METHOD   #########################
+    # Name: getSymbolValue
+    # Input: self,symbol
+    # Output: symbol value
+    # Description: receives a symbol or its negation and
+    #              returns corresponding value
     #
     ############################################################
 
     def getSymbolValue(self,sym):
-        value = self.symbols[abs(sym)]
+        value = self.symbols[absg(sym)]
+        if value == []:
+            return []
         if sym > 0:
             return value
         else:
             return not value
 
+    #################   CLASS METHOD   #########################
+    # Name: getSymbolValue
+    # Input: self,symbol
+    # Output: symbol value
+    # Description: receives a symbol or its negation and
+    #              returns corresponding value
+    #
+    ############################################################
+
     def switchSymbolValue(self,sym):
-        self.symbols[abs(sym)] = not self.symbols[abs(sym)]
+        self.symbols[absg(sym)] = not self.symbols[absg(sym)]
+
+    #################   CLASS METHOD   #########################
+    # Name: getSymbolValue
+    # Input: self,symbol
+    # Output: symbol value
+    # Description: receives a symbol or its negation and
+    #              returns corresponding value
+    #
+    ############################################################
 
     def getSymbols(self):
         return self.symbols.keys()
+
+    #################   CLASS METHOD   #########################
+    # Name: getSymbolValue
+    # Input: self,symbol
+    # Output: symbol value
+    # Description: receives a symbol or its negation and
+    #              returns corresponding value
+    #
+    ############################################################
 
     def getRandomFalseClause(self):
         falseClauses=list()
 
         # determine and store false clauses
         for clause in self.clauses:
-            if not self.isClauseTrue(clause):
+            if self.isClauseFalse(clause):
                 falseClauses.append(clause)
 
         # return random clause from false clause list
         return choice(falseClauses)
+
+    #################   CLASS METHOD   #########################
+    # Name: getSymbolValue
+    # Input: self,symbol
+    # Output: symbol value
+    # Description: receives a symbol or its negation and
+    #              returns corresponding value
+    #
+    ############################################################
 
     def isClauseTrue(self,clause):
         for sym in clause:
@@ -68,11 +148,59 @@ class proposition:
                 return True
         return False
 
+    #################   CLASS METHOD   #########################
+    # Name: getSymbolValue
+    # Input: self,symbol
+    # Output: symbol value
+    # Description: receives a symbol or its negation and
+    #              returns corresponding value
+    #
+    ############################################################
+
+    def isClauseFalse(self,clause):
+        for sym in clause:
+            if self.getSymbolValue(sym) is not False:
+                return False
+        return True
+
+    #################   CLASS METHOD   #########################
+    # Name: getSymbolValue
+    # Input: self,symbol
+    # Output: symbol value
+    # Description: receives a symbol or its negation and
+    #              returns corresponding value
+    #
+    ############################################################
+
     def isSatisfied(self):
         for clause in self.clauses:
             if self.isClauseTrue(clause) is False:
                 return False
         return True
+
+    #################   CLASS METHOD   #########################
+    # Name: getSymbolValue
+    # Input: self,symbol
+    # Output: symbol value
+    # Description: receives a symbol or its negation and
+    #              returns corresponding value
+    #
+    ############################################################
+
+    def isUnsatisfied(self):
+        for clause in self.clauses:
+            if self.isClauseFalse(clause):
+                return True
+        return False
+
+    #################   CLASS METHOD   #########################
+    # Name: getSymbolValue
+    # Input: self,symbol
+    # Output: symbol value
+    # Description: receives a symbol or its negation and
+    #              returns corresponding value
+    #
+    ############################################################
 
     def evalClauses(self):
         count = 0
@@ -81,7 +209,27 @@ class proposition:
                 count = count +1
         return count
 
+    #################   CLASS METHOD   #########################
+    # Name: copy
+    # Input: self
+    # Output: copy of self
+    # Description: makes a copy of object
+    #
+    ############################################################
 
+    def copy(self):
+        newProp = proposition(self.numSymbols,self.numClauses,list(self.clauses))
+        newProp.symbols = dict(self.symbols)
+        return newProp
+
+
+#################   FUNCTION   #############################
+# Name: loadProblem
+# Input: filename
+# Output: sentence
+# Description:
+#
+############################################################
 
 def loadProblem(filename):
     input = [line.strip() for line in open(filename)] #get all lines from file
@@ -90,6 +238,7 @@ def loadProblem(filename):
 
 
     clauses = list()
+
     symbols = list()
 
     for l in input:
@@ -101,7 +250,7 @@ def loadProblem(filename):
             l=l.split(" ")
             while '' in l:      # remove null elements from list - important for correct parsing
                 l.remove('')
-            print l
+            print(str(l))
             numberSymbols = int(l[2])
             numberClauses = int(l[3])
         elif l[0] == '%':
@@ -116,10 +265,11 @@ def loadProblem(filename):
 
 
     problem = proposition(numberSymbols,numberClauses,clauses)
+    problem.fillSymbols()
     return problem
 
 def saveProblem(filename,sentence,runtime,algorithm):
-    if sentence is not False:
+
 
         # create name for solution file
         filename_write = filename + "." + algorithm
@@ -131,9 +281,11 @@ def saveProblem(filename,sentence,runtime,algorithm):
             try:
                 fs.write("c \n")
                 fs.write("c ALGORITHM: " + algorithm + "\n")
+                if sentence is False:
+                    fs.write("c FAIL")
                 fs.write("c \n")
                 fs.write("p max " + str(sentence.numSymbols) + " " + str(sentence.numClauses) + "\n")
-                fs.write("t max " + str(sentence.numSymbols) + " " + str(sentence.numClauses) + " " + str(runtime) + " " + "0" + "\n")
+                fs.write("t max " + str(sentence.numSymbols) + " " + str(sentence.numClauses) + " " + str(runtime) + " " + str(float(sentence.numClauses)/sentence.numSymbols) + " " + "0\n")
             finally:
                 fs.close()
                 print("Solution saved in " + filename_write)
@@ -234,22 +386,20 @@ print("==========================================================")
 print(problem.symbols)
 print(problem.clauses)
 
-problem.setRandomSymbolTrueness()
-
 print("........:::::::: GSAT ::::::::........")
 runtimeGSAT = time()
-problemGSAT = GSAT(problem,10,100)
+problemGSAT = GSAT(problem.copy(),2*problem.numSymbols,4*problem.numSymbols)
 runtimeGSAT = time() -  runtimeGSAT
-print("GSAT runtime: " + str(runtimeGSAT) + "s")
+print("GnSAT runtime: " + str(runtimeGSAT) + "s")
 if problemGSAT is False:
-    print False
+    print(str(False))
 else:
-    print True
-    print problemGSAT.symbols
+    print(str(True))
+    print(str(problemGSAT.symbols))
 
 print("........:::::::: WalkSAT ::::::::........")
 runtimeWSAT = time()
-problemWSAT = WalkSAT(problem,0.6,100)
+problemWSAT = WalkSAT(problem.copy(),0.6,5*problem.numSymbols)
 runtimeWSAT = time() - runtimeWSAT
 print("WalkSAT runtime: " + str(runtimeWSAT) + "s")
 if problemWSAT is False:
@@ -258,6 +408,18 @@ else:
     print True
     print problemWSAT.symbols
 
+print("........:::::::: DPLL ::::::::........")
+runtimeDPLL = time()
+print(str(problem.symbols))
+problemDPLL = DPLL(problem.copy())
+runtimeDPLL = time() - runtimeDPLL
+print("DPLL runtime: " + str(runtimeDPLL) + "s")
+if problemDPLL is False:
+    print False
+else:
+    print True
+    print problemDPLL.symbols
 
 saveProblem(filename,problemGSAT,runtimeGSAT,"GSAT")
 saveProblem(filename,problemWSAT,runtimeWSAT,"WSAT")
+saveProblem(filename,problemDPLL,runtimeDPLL,"DPLL")
