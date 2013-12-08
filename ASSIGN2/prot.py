@@ -18,7 +18,7 @@ from DPLL import DPLL
 def absg(value):
     if value > 0:
         return value
-    else:
+else:
         return -value
 
 class proposition:
