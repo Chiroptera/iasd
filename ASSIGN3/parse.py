@@ -1,6 +1,6 @@
 import sys
 from bayes_networks import *
-
+from variableElimination import *
 
 def readFile(filename):
     try:
@@ -67,6 +67,7 @@ def parseBN(input):
             # connect node to parents
             variable.connectToParents(listOfVars)
 
+
             # first value is from variable, the rest from parents
             numberOfValues = 1 + variable.getNumParents()
 
@@ -122,7 +123,34 @@ if stuff != -1:
         print f
 
     bayesNetwork = parseBN(stuff)
+    undirectedNetwork = dict()
 
-    for (key,value) in bayesNetwork.iteritems():
+    for node in bayesNetwork.values():
+        if node not in undirectedNetwork.values():
+            undirectedNetwork[node.name]=bayesUnVar(node)
+
+    # build undirected graph
+    for node in undirectedNetwork.values():
+        print '--------------------'
+        print node.ref.name
+        node.connectUndirected(bayesNetwork,undirectedNetwork)
+        print 'undirected'
+        for un in node.Child + node.Parent + node.Neighbors:
+            print un.ref.name
+
+    varOrder = dict()
+    for un in undirectedNetwork.values():
+        varOrder[un]=len(un.Child + un.Parent + un.Neighbors)
+
+    for key,value in varOrder.iteritems():
+        print key.ref.name, value
+
+    for key,value in bayesNetwork.iteritems():
         print '---------------------------'
-        value.Print()
+        if len(key) > 1:
+            value.Print()
+
+    evidence = dict()
+    evidence['Burglary']='f'
+    evidence['E']='t'
+    varElim(bayesNetwork,'John',evidence,undirectedNetwork)
