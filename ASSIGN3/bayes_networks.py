@@ -103,9 +103,15 @@ class factor:
             varsPos=(self.vars.index(var),other.vars.index(var)) # get position of variable in self and other variable list
 
 
+
+
+        # to compute the new CPT we iterate over the entire CPT of the other factor for each combination of the self factor
+        # if the values of the common variables match, than we multiply the its probabilities
+
         outCPT = dict()
         left = 0
         right = 1
+
         for combLeft,probLeft in self.CPT.iteritems():
 
             for combRight,probRight in other.CPT.iteritems():
@@ -122,4 +128,4 @@ class factor:
                     continue
 
                 # from combRight remove the common variable assignment
-                outCPT[combLeft + ([ass for i,ass in enumerate(combRight) if i != 1]] = probLeft * progRight
+                outCPT[combLeft + ([v for i,v in enumerate(combRight) if v not in commonVars]] = probLeft * progRight
