@@ -24,14 +24,35 @@ def varElim(Graph,query,evidence,unGraph):
                 if line[pos+1] != value:
                     del child.CPT[line]
 
-    factors = list()
 
-    for key,value in Graph.iteritems():
-        if len(key) > 1:
-            print '---------------------------'
-            value.Print()
-            factors.append(value)
+    factors = dict()
+    factorList = list()
+    tempAdded = list()
+    for node in Graph.values():
+        if node not in tempAdded:
+            tempAdded.append(node)
+            tempFactor = node.getFactor()
+            factorList.append(tempFactor)
 
+            for var in tempFactor.vars:
+                if var not in factors.keys():
+                    factors[var]=list()
+                factors[var].append(tempFactor)
+
+
+
+    # for key,value in Graph.iteritems():
+    #     if len(key) > 1:
+    #         print '---------------------------'
+    #         value.Print()
+    #         factors.append(value)
+
+
+    for f in factorList:
+        f.Print()
+
+    resultFactor=factorList[-1].pointwiseMul(factorList[-2])
+    resultFactor.Print()
 def eliminate(Z,factors):
     IN = list()
     OUT = list()
