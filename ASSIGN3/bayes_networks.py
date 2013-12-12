@@ -1,3 +1,5 @@
+import pdb
+
 class factor:
     def __init__(self,vars,CPT):
         self.vars = vars
@@ -60,6 +62,24 @@ class factor:
                 outCPT[combLeft + tuple([v for i,v in enumerate(combRight) if i not in rightPos ])] = probLeft * probRight
 
         return factor(finalVarsList,outCPT)
+
+    def sumOut(self,var):
+        varPos = self.vars.index(var)
+        finalVarsList=[v for v in self.vars if v != var] # list with all the variables except the one to sum out
+
+        print 'sum out\n\n'
+        print finalVarsList
+        outCPT = dict()
+
+        for comb,prob in self.CPT.iteritems():
+            newComb = tuple([v for i,v in enumerate(comb) if i != varPos])
+            if newComb not in outCPT.keys():
+                outCPT[newComb] = prob
+            else:
+                outCPT[newComb] += prob
+
+        return factor(finalVarsList,outCPT)
+
 
     def Print(self):
         print 'Variables: '
@@ -130,7 +150,7 @@ class bayesVar:
         return len(self.parentsNames)
 
 
-
+# bayes undirected variable
 class bayesUnVar:
     def __init__(self,realnode):
         self.ref = realnode

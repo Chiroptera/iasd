@@ -1,4 +1,5 @@
 import sys
+import pdb
 from bayes_networks import *
 from variableElimination import *
 
@@ -138,12 +139,17 @@ if stuff != -1:
         for un in node.Child + node.Parent + node.Neighbors:
             print un.ref.name
 
+
+    #
+    # calculate heuristic for variable elimination for every variable
+    #
     varOrder = dict()
     for un in undirectedNetwork.values():
-        varOrder[un]=len(un.Child + un.Parent + un.Neighbors)
+        varOrder[un.ref.name]=len(un.Child + un.Parent + un.Neighbors)
+
 
     for key,value in varOrder.iteritems():
-        print key.ref.name, value
+        print undirectedNetwork[key].ref.name, value
 
     for key,value in bayesNetwork.iteritems():
         print '---------------------------'
@@ -152,5 +158,16 @@ if stuff != -1:
 
     evidence = dict()
     evidence['Burglary']='f'
-    evidence['E']='t'
-    varElim(bayesNetwork,'John',evidence,undirectedNetwork)
+    #evidence['E']='t'
+
+    query = ['John']
+
+    for var in query:
+        if var in varOrder.keys():
+            del varOrder[bayesNetwork[var].name]
+
+    for var in evidence.keys():
+        if var in varOrder.keys():
+            del varOrder[bayesNetwork[var].name]
+
+    varElim(bayesNetwork,query,evidence,varOrder)
