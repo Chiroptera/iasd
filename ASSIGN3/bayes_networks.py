@@ -38,17 +38,17 @@ class bayesVar:
             print '\t', c.name
 
     def connectToParents(self,setOfNodes):
-        if self.parentsNames != []:
-            for parent in self.parentsNames:
+        if self.parentsNames != []: # if there are parents
+            for index,parent in enumerate(self.parentsNames):
                 self.parents.append(setOfNodes[parent]) #put parent in this node's parents list
                 setOfNodes[parent].childs.append(self) # put current node in parent's child list
+
+                if parent == setOfNodes[parent].alias:
+                    self.parentsNames[index] = setOfNodes[parent].name
 
 
     def getNumParents(self):
         return len(self.parentsNames)
-
-
-
 
 
 
@@ -68,6 +68,7 @@ class bayesUnVar:
 
             for parent in self.ref.parents[:i] + self.ref.parents[(i+1):]:
                 unGraph[p.name].Neighbors.append(unGraph[parent.name])
+
         #l_without_num = l[:k] + l[(k + 1):] list with every element except the Kth
 
     def removeNode(self,unGraph):
@@ -80,11 +81,45 @@ class bayesUnVar:
                 for child in self.Child:
                     child.Parent.remove(self) # remove itself from childs
                     child.Parent.append(parent) # link childs to parents
-                    parent.Child.append(child)  # link parents to childsg
+                    parent.Child.append(child)  # link parents to childog
 
 class factor:
     def __init__(self,vars,CPT):
         self.vars=vars
         self.CPT
 
-    def pointwise_mul(self,other,)
+    def pointwise_mul(self,other):
+        commonVars = list(set(self.vars) & set(other.vars))
+
+        if len(self.CPT) > len(other.CPT):
+            lenBiggestCPT = len(self.CPT)
+            orderedFactor = [self,other]
+        else:
+            lenBiggestCPT = len(other.CPT)
+            orderedFactor = [other,self]
+
+        varsPos = dict()
+        for var in commonVars:
+            varsPos=(self.vars.index(var),other.vars.index(var)) # get position of variable in self and other variable list
+
+
+        outCPT = dict()
+        left = 0
+        right = 1
+        for combLeft,probLeft in self.CPT.iteritems():
+
+            for combRight,probRight in other.CPT.iteritems():
+
+                # check if common variables have the same value
+                sameValue = True
+                for var in commonVars:
+                    if combLeft[varsPos[var][left]] != combRight[varsPos[var][right]]: # if one of the variables has different value we can stop
+                        sameValue = False
+                        break
+
+                # next iteration of right table if common variables' values don't match
+                if sameValue == True:
+                    continue
+
+                # from combRight remove the common variable assignment
+                outCPT[combLeft + ([ass for i,ass in enumerate(combRight) if i != 1]] = probLeft * progRight
