@@ -4,29 +4,29 @@ VAR
 name MaryCalls
 alias M
 parents Alarm
-values T F
+values t f
 
 VAR
 name Earthquake
 alias E
-values T F
+values t f
 
 VAR
 name Burglary
 alias B
-values T F
+values t f
 
 VAR
 name JohnCalls
 alias J
 parents Alarm
-values T F
+values t f
 
 VAR
 name Alarm
 alias A
 parents Burglary E
-values T F
+values t f
 
 # CPT specification
 CPT

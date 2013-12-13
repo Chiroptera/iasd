@@ -66,7 +66,7 @@ def parseBN(input):
             variable = listOfVars[variable]        # gets bayes node from list
 
             # connect node to parents
-            variable.connectToParents(listOfVars)
+            #variable.connectToParents(listOfVars)
 
 
             # first value is from variable, the rest from parents
@@ -104,27 +104,46 @@ def parseBN(input):
                     cptLine += 1
 
             variable.setCPT(cpt)
-            print variable.CPT
         line += 1
 
     return listOfVars
 
 
+
 if len(sys.argv) == 2:
     filename=str(sys.argv[1])
+    verbose = False
+elif len(sys.argv) == 3:
+    filename=str(sys.argv[1])
+    if sys.argv[2] == '-v':
+        verbose = True
 else:
     print("Correct usage:")
-    print("python program.py filename")
+    print("-v for verbose mode")
+    print("python program.py <filename> <-v>")
     sys.exit(1)
 
 stuff=readFile("test.bn")
 if stuff != -1:
 
-    for f in stuff:
-        print f
+    # for f in stuff:
+    #     print f
+
 
     bayesNetwork = parseBN(stuff)
+
+    connectedNodes=list()
+    for f in bayesNetwork.values():
+        if f not in connectedNodes:
+            f.connectToParents(bayesNetwork)
+            connectedNodes.append(f)
+
+    # for f in bayesNetwork.values():
+    #     f.Print()
+
     undirectedNetwork = dict()
+
+
 
     for node in bayesNetwork.values():
         if node not in undirectedNetwork.values():
@@ -132,12 +151,12 @@ if stuff != -1:
 
     # build undirected graph
     for node in undirectedNetwork.values():
-        print '--------------------'
-        print node.ref.name
+       # print '--------------------'
+       # print node.ref.name
         node.connectUndirected(bayesNetwork,undirectedNetwork)
-        print 'undirected'
-        for un in node.Child + node.Parent + node.Neighbors:
-            print un.ref.name
+        # print 'undirected'
+        # for un in node.Child + node.Parent + node.Neighbors:
+        #     print un.ref.name
 
 
     #
@@ -148,26 +167,61 @@ if stuff != -1:
         varOrder[un.ref.name]=len(un.Child + un.Parent + un.Neighbors)
 
 
-    for key,value in varOrder.iteritems():
-        print undirectedNetwork[key].ref.name, value
+    # for key,value in varOrder.iteritems():
+    #     print undirectedNetwork[key].ref.name, value
 
-    for key,value in bayesNetwork.iteritems():
-        print '---------------------------'
-        if len(key) > 1:
-            value.Print()
+    # for key,value in bayesNetwork.iteritems():
+    #     print '---------------------------'
+    #     if len(key) > 1:
+    #         value.Print()
 
     evidence = dict()
-    evidence['Burglary']='f'
+    query = list()
+    # evidence['JohnCalls']='t'
+    # evidence['MaryCalls']='t'
     #evidence['E']='t'
 
-    query = ['John']
+    # query = ['Burglary']
+    while(True):
+        while(True):
+            queryInput = raw_input('Enter a query variable: ')
+            if queryInput not in bayesNetwork.keys():
+                print 'Variable does not exist in network.'
+            else:
+                query.append(queryInput)
+                break
 
-    for var in query:
-        if var in varOrder.keys():
-            del varOrder[bayesNetwork[var].name]
+        while(True):
+            evidenceVar = raw_input('Enter an evidence variable: ')
+            if evidenceVar not in bayesNetwork.keys():
+                print('Variable does not exist in network.')
+                continue
 
-    for var in evidence.keys():
-        if var in varOrder.keys():
-            del varOrder[bayesNetwork[var].name]
+            print 'Possible values for', evidenceVar, 'are', bayesNetwork[evidenceVar].values
 
-    varElim(bayesNetwork,query,evidence,varOrder)
+            evidenceValue = raw_input('Enter the value for that variable: ')
+            if evidenceValue not in bayesNetwork[evidenceVar].values:
+                print('That value is not valid.')
+                continue
+
+            evidence[evidenceVar]=evidenceValue
+
+            finished = raw_input('Finished query? (press enter to insert more evidence / write anything to execute)')
+            if finished:
+                break
+            else:
+                continue
+
+        for i,var in enumerate(query):
+            query[i]=bayesNetwork[var].name
+            if bayesNetwork[var].name in varOrder.keys():
+                del varOrder[bayesNetwork[var].name]
+
+        for var in evidence.keys():
+            if bayesNetwork[var].name in varOrder.keys():
+                del varOrder[bayesNetwork[var].name]
+
+        print 'query:',query
+        print 'evidence', evidence.keys()
+        print 'varOrder',varOrder.keys()
+        varElim(bayesNetwork,query,evidence,varOrder,verbose)

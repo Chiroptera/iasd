@@ -5,6 +5,15 @@ class factor:
         self.vars = vars
         self.CPT = CPT
 
+    def printProb(self,var):
+        if var not in self.vars:
+            raise Exception('Factor doesn''t depend on specified variable.')
+        varPos = self.vars.index(var)
+        print 'The probability of ', var, ' is'
+
+        for comb,prob in self.CPT.iteritems():
+            print '\t', prob, ' for a value of ', comb[varPos]
+
     def pointwiseMul(self,other):
 
         # get common variables
@@ -47,9 +56,6 @@ class factor:
                 sameValue = True
                 for var in commonVars:
 
-                    # print 'varsPos[var] = ', varsPos[var]
-                    # print 'varsPos[var][left] = ',varsPos[var][left]
-
                     if combLeft[varsPos[var][left]] != combRight[varsPos[var][right]]: # if one of the variables has different value we can stop
                         sameValue = False
                         break
@@ -67,8 +73,6 @@ class factor:
         varPos = self.vars.index(var)
         finalVarsList=[v for v in self.vars if v != var] # list with all the variables except the one to sum out
 
-        print 'sum out\n\n'
-        print finalVarsList
         outCPT = dict()
 
         for comb,prob in self.CPT.iteritems():
@@ -82,7 +86,7 @@ class factor:
 
 
     def Print(self):
-        print 'Variables: '
+        print '\n\nVariables: '
         for var in self.vars:
             print '\t',var
 

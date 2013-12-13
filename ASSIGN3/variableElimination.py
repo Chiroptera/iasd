@@ -1,4 +1,4 @@
-def varElim(Graph,query,evidence,varOrder):
+def varElim(Graph,query,evidence,varOrder,verbose=False):
     # Graph is a dictionary with alias and names for keys; bayes nodes for values
     # Query is the name of a variable
     # Evidence is a dictionary with variable names for keys; assignment for values
@@ -33,7 +33,6 @@ def varElim(Graph,query,evidence,varOrder):
     # filling the factor list
     #
 
-    factors = dict()
     factorList = list()
     tempAdded = list()
     for node in Graph.values():
@@ -42,40 +41,46 @@ def varElim(Graph,query,evidence,varOrder):
             tempFactor = node.getFactor()
             factorList.append(tempFactor)
 
-            for var in tempFactor.vars:
-                if var not in factors.keys():
-                    factors[var]=list()
-                factors[var].append(tempFactor)
-
-
-
-    # for key,value in Graph.iteritems():
-    #     if len(key) > 1:
-    #         print '---------------------------'
-    #         value.Print()
-    #         factors.append(value)
-
-
-    for f in factorList:
-        f.Print()
-
-    resultFactor=factorList[-1].pointwiseMul(factorList[-2])
-    resultFactor.Print()
-    a=resultFactor.sumOut('Alarm')
-    a.Print()
-
-    print '*\n*\n*\n*\n*\n*\n*\n*\n*\n*\n*\n'
 
     # Now it's VE
+    if verbose:
+        print '\n-----------------------------------------------------------'
+        print 'Starting Variable Elimination procedure...'
     for var in varOrder:
-        factorsList = eliminate(factorList,var)
+        factorList = eliminate(factorList,var,verbose)
 
+    if verbose:
+        print 'Computing pointwise multiplication between resulting factors...'
 
-    print 'its done'
+    resultFactor = factorList.pop()
+
     for f in factorList:
-        f.Print()
+        if verbose:
+            print '\n\nMultiplication between factors'
+            resultFactor.Print()
+            print '\nand\n'
+            f.Print()
 
-def eliminate(Z,var):
+        resultFactor = resultFactor.pointwiseMul(f)
+
+        if verbose:
+            print 'The result was:'
+            resultFactor.Print()
+
+
+    normalizeK = sum(resultFactor.CPT.values())
+    for comb,prob in resultFactor.CPT.iteritems():
+        resultFactor.CPT[comb]=prob / normalizeK
+
+    if verbose:
+        print '\n\nNormalizing...'
+        print 'Normalizing constant is', normalizeK
+        print 'Factor normalized is:'
+        resultFactor.Print()
+
+    resultFactor.printProb(query[0])
+
+def eliminate(Z,var,verbose):
     IN = list()
     OUT = list()
 
@@ -85,29 +90,49 @@ def eliminate(Z,var):
         else:
             OUT.append(f)
 
-    print '\n\n\n---------------------------------'
-    print 'eliminating variable ', var
-    print 'IN list is '
-    for f in IN:
-        f.Print()
-
-    print 'OUT list is '
-    for f in OUT:
-        f.Print()
-
+    if verbose:
+        print '\n\n\n--------------------'
+        print '\t********************************************'
+        print '\t*       ELIMINATE VARIABLE                 *'
+        print '\t*\t\t',var
+        print '\t*                                          *'
+        print '\t********************************************'
+        print 'Factors involved are'
+        for f in IN:
+            f.Print()
+        print '\n---------------------'
 
     resultingFactor = IN.pop()
     if len(IN) != 0:
         for f in IN:
+
+            if verbose:
+                print 'Doing pointwise multuplication between factors '
+                resultingFactor.Print()
+                print '\nand\n'
+                f.Print()
+
             resultingFactor = resultingFactor.pointwiseMul(f)
-            print 'pointwise\n'
-            resultingFactor.Print()
+
+            if verbose:
+                print 'The result was:'
+                resultingFactor.Print()
+
+    if verbose:
+        print 'Doing sum-out...'
 
     resultingFactor = resultingFactor.sumOut(var)
 
-    print '\nafter sum out \n'
-    resultingFactor.Print()
+    if verbose:
+        print 'The result was:'
+        resultingFactor.Print()
 
 
+    OUT.append(resultingFactor)
 
-    return OUT.append(resultingFactor)
+    if verbose:
+        print '\n\nThe returning list of factor is:'
+        for f in OUT:
+            f.Print()
+
+    return OUT
